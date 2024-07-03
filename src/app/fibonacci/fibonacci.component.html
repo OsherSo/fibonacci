@@ -1,13 +1,21 @@
-<div>
-  <h1>Fibonacci Number: {{ currentNumber }}</h1>
-  <button
-    (click)="goToPrevious()"
-    [disabled]="fibonacciService.getCurrentIndex() === 0"
-  >
-    Previous
-  </button>
-  <button (click)="goToNext()">Next</button>
-  <br />
-  <input type="number" [(ngModel)]="inputIndex" placeholder="Enter index" />
-  <button (click)="jumpTo()">Jump to...</button>
+<h1>Fibonacci Number:</h1>
+<span
+  class="fibonacci-number"
+  [class.changing]="isChanging"
+  [class.changed]="!isChanging"
+>
+  {{ fibonacciService.currentNumber }}
+</span>
+<div class="controls">
+  <button (click)="previous()" [disabled]="currentIndex === 1">Previous</button>
+  <button (click)="next()">Next</button>
+</div>
+<div class="jump-controls">
+  <input
+    type="number"
+    [(ngModel)]="jumpIndex"
+    placeholder="Enter index"
+    min="1"
+  />
+  <button (click)="jumpTo()">Jump to</button>
 </div>

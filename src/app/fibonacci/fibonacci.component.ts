@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { FibonacciService } from '../fibonacci.service';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { FibonacciService } from '../fibonacci.service';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-fibonacci',
@@ -11,44 +12,54 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './fibonacci.component.html',
   styleUrls: ['./fibonacci.component.css'],
 })
-export class FibonacciComponent implements OnInit {
-  currentNumber: number = 0;
-  inputIndex: number = 0;
+export class FibonacciComponent implements OnInit, OnDestroy {
+  currentIndex = 1;
+  jumpIndex = 1;
+  isChanging = false;
+  private destroy$ = new Subject<void>();
 
   constructor(
     public fibonacciService: FibonacciService,
-    private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
-    this.route.params.subscribe((params) => {
-      const index = +params['index'];
-      this.currentNumber = this.fibonacciService.jumpToIndex(index);
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+      const index = Math.max(1, +params['index'] || 1);
+      this.fibonacciService.jumpTo(index);
     });
+
+    this.fibonacciService.currentIndex$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((index) => {
+        this.currentIndex = index;
+        this.router.navigate(['/fibonacci', index]);
+        this.animateNumberChange();
+      });
   }
 
-  goToPrevious(): void {
-    this.currentNumber = this.fibonacciService.getPreviousFibonacciNumber();
-    this.updateRoute();
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  goToNext(): void {
-    this.currentNumber = this.fibonacciService.getNextFibonacciNumber();
-    this.updateRoute();
+  previous(): void {
+    this.fibonacciService.previous();
+  }
+
+  next(): void {
+    this.fibonacciService.next();
   }
 
   jumpTo(): void {
-    if (this.inputIndex >= 0) {
-      this.currentNumber = this.fibonacciService.jumpToIndex(this.inputIndex);
-      this.updateRoute();
-    }
+    this.fibonacciService.jumpTo(this.jumpIndex);
   }
 
-  private updateRoute(): void {
-    this.router.navigate([
-      '/fibonacci',
-      this.fibonacciService.getCurrentIndex(),
-    ]);
+  private animateNumberChange(): void {
+    this.isChanging = true;
+    setTimeout(() => {
+      this.isChanging = false;
+    }, 10);
   }
 }
