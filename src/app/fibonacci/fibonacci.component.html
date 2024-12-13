@@ -1,0 +1,21 @@
+<h1>Fibonacci Number:</h1>
+<span
+  class="fibonacci-number"
+  [class.changing]="isChanging"
+  [class.changed]="!isChanging"
+>
+  {{ fibonacciService.currentNumber }}
+</span>
+<div class="controls">
+  <button (click)="previous()" [disabled]="currentIndex === 1">Previous</button>
+  <button (click)="next()">Next</button>
+</div>
+<div class="jump-controls">
+  <input
+    type="number"
+    [(ngModel)]="jumpIndex"
+    placeholder="Enter index"
+    min="1"
+  />
+  <button (click)="jumpTo()">Jump to</button>
+</div>
